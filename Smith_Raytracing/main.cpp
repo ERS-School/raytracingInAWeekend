@@ -4,23 +4,36 @@
 
 #include <iostream>
 
-bool Hit_Sphere(const point3& _center, float _radius, const Ray& _r) {
+float Hit_Sphere(const point3& _center, float _radius, const Ray& _r) {
     Vec3 oc = _r.Origin() - _center;
     auto a = Dot(_r.Direction(), _r.Direction());
     auto b = 2.0f * Dot(oc, _r.Direction());
     auto c = Dot(oc, oc) - _radius * _radius;
     auto discriminant = b * b - 4 * a * c;
-    return (discriminant > 0);
+    if (discriminant < 0)
+    {
+        return -1.0;
+    }
+    else
+    {
+        return (-b - sqrt(discriminant)) / (2.0f * a);
+    }
 }
 
 /**
  * \brief Blend white and blue depending on the height of the y-coordinate after scaling the ray's direction to unit length
  */
 colorRGB Ray_Color(const Ray& _r) {
-    if (Hit_Sphere(point3(0, 0, -1), 0.5f, _r))
-        return colorRGB(1, 0, 0);
+	auto t = Hit_Sphere(point3(0, 0, -1), 0.5f, _r);
+
+    if (t > 0.0f) // case where we have intersected the sphere somewhere along the + direction of the ray
+    {
+	    const Vec3 surfaceNormal = UnitVector(_r.At(t) - Vec3(0, 0, -1)); // Normal = surface point - sphere center (which we know is (0, 0, -1))
+        return 0.5f * colorRGB(surfaceNormal.X() + 1.0f, surfaceNormal.Y() + 1.0f, surfaceNormal.Z() + 1.0f);
+    }
 	const Vec3 unitDir = UnitVector(_r.Direction());
-	const auto t = 0.5f * (unitDir.Y() + 1.0f);
+    t = 0.5f * (unitDir.Y() + 1.0f);
+
     // linear interpolation (lerp):
     // blendedValue = 1 - t) * start value + t * endValue
     return (1.0f - t) * colorRGB(1.0f, 1.0f, 1.0f) + t * colorRGB(0.5f, 0.7f, 1.0f);
