@@ -1,45 +1,23 @@
+#include "rtweekend.h"
+
 #include "color.h"
-#include "ray.h"
-#include "vec3.h"
+#include "hittableList.h"
+#include "sphere.h"
 
 #include <iostream>
-
-float Hit_Sphere(const point3& _center, float _radius, const Ray& _r) {
-    Vec3 oc = _r.Origin() - _center;
-    auto a = _r.Direction().LengthSquared(); //same as Dot(_r.Direction(), _r.Direction());
-    //auto b = 2.0f * Dot(oc, _r.Direction());
-    auto halfB = Dot(oc, _r.Direction());
-    auto c = oc.LengthSquared() - _radius * _radius; // same as Dot(oc, oc) - _radius * _radius;
-    const auto discriminant = halfB * halfB - a * c;
-    //auto discriminant = b * b - 4 * a * c;
-    
-    if (discriminant < 0)
-    {
-        return -1.0;
-    }
-    else
-    {
-        //return (-b - sqrt(discriminant)) / (2.0f * a);
-        return (-halfB - sqrt(discriminant)) / a;
-    }
-}
 
 /**
  * \brief Blend white and blue depending on the height of the y-coordinate after scaling the ray's direction to unit length
  */
-colorRGB Ray_Color(const Ray& _r) {
-	auto t = Hit_Sphere(point3(0, 0, -1), 0.5f, _r);
-
-    if (t > 0.0f) // case where we have intersected the sphere somewhere along the + direction of the ray
-    {
-	    const Vec3 surfaceNormal = UnitVector(_r.At(t) - Vec3(0, 0, -1)); // Normal = surface point - sphere center (which we know is (0, 0, -1))
-        return 0.5f * colorRGB(surfaceNormal.X() + 1.0f, surfaceNormal.Y() + 1.0f, surfaceNormal.Z() + 1.0f);
-    }
-	const Vec3 unitDir = UnitVector(_r.Direction());
-    t = 0.5f * (unitDir.Y() + 1.0f);
+colorRGB Ray_Color(const Ray& _r, const Hittable& _world) {
+    HitInfo info;
+    if (_world.Hit(_r, 0, INFINITY, info))
+        return 0.5f * (info.Normal_ + colorRGB(1.0f, 1.0f, 1.0f));
 
     // linear interpolation (lerp):
     // blendedValue = 1 - t) * start value + t * endValue
+    const Vec3 unitDir = UnitVector(_r.Direction());
+    const auto t = 0.5f * (unitDir.Y() + 1.0f);
     return (1.0f - t) * colorRGB(1.0f, 1.0f, 1.0f) + t * colorRGB(0.5f, 0.7f, 1.0f);
 }
 
@@ -49,6 +27,11 @@ int main() {
     constexpr auto aspectRatio = 16.0f / 9.0f;
     constexpr int imgWidth = 400;  // pixels
     constexpr int imgHeight = static_cast<int>(imgWidth / aspectRatio); //pixels
+
+    // World Properties
+    HittableList world;
+    world.Add(make_shared<Sphere>(point3(0, 0, -1), 0.5f));
+    world.Add(make_shared<Sphere>(point3(0, -100.5, -1), 100.0f));
 
     // Camera Properties
     constexpr auto viewportHeight = 2.0f;
@@ -73,7 +56,7 @@ int main() {
             float u = static_cast<float>(col) / (imgWidth / 1.0f);
             float v = static_cast<float>(row) / (imgHeight / 1.0f);
             Ray r(origin, lowerLeftCorner + u * horizontalAxis + v * verticalAxis - origin);
-	        const colorRGB pixelColor(Ray_Color(r));
+	        const colorRGB pixelColor(Ray_Color(r, world));
             Write_Color(std::cout, pixelColor);
         }
     }

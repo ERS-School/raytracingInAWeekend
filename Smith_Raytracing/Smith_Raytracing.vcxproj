@@ -148,6 +148,7 @@
     <ClInclude Include="hittable.h" />
     <ClInclude Include="hittableList.h" />
     <ClInclude Include="ray.h" />
+    <ClInclude Include="rtweekend.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="vec3.h" />
   </ItemGroup>

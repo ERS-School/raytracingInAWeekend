@@ -44,5 +44,8 @@
     <ClInclude Include="hittableList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="rtweekend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
