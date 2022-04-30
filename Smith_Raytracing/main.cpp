@@ -4,10 +4,21 @@
 
 #include <iostream>
 
+bool Hit_Sphere(const point3& _center, float _radius, const Ray& _r) {
+    Vec3 oc = _r.Origin() - _center;
+    auto a = Dot(_r.Direction(), _r.Direction());
+    auto b = 2.0f * Dot(oc, _r.Direction());
+    auto c = Dot(oc, oc) - _radius * _radius;
+    auto discriminant = b * b - 4 * a * c;
+    return (discriminant > 0);
+}
+
 /**
  * \brief Blend white and blue depending on the height of the y-coordinate after scaling the ray's direction to unit length
  */
 colorRGB Ray_Color(const Ray& _r) {
+    if (Hit_Sphere(point3(0, 0, -1), 0.5f, _r))
+        return colorRGB(1, 0, 0);
 	const Vec3 unitDir = UnitVector(_r.Direction());
 	const auto t = 0.5f * (unitDir.Y() + 1.0f);
     // linear interpolation (lerp):
