@@ -41,47 +41,53 @@ struct Vec3
 	Vec3& operator/=(const float _t) {
 		return *this *= 1 / _t; // math!
 	}
-				// overload as friend functions of the class. https://stackoverflow.com/questions/15777944/overloading-the-operator-error-c2804-binary-operator-has-too-many-param
-				// (otherwise it's trying to overload the bitwise versions? for some reason) https://stackoverflow.com/questions/35943537/error-c2804-binary-operator-has-too-many-parameters-compiling-with-vc-120
-	friend inline std::ostream& operator<<(std::ostream& _out, const Vec3& _v) {	
-		return _out << _v.e[0] << ' ' << _v.e[1] << ' ' << _v.e[2];					
-	}
-	friend inline Vec3 operator+(const Vec3& _u, const Vec3& _v) {
-		return {_u.e[0] + _v.e[0], _u.e[1] + _v.e[1], _u.e[2] + _v.e[2]};
-	}
-	friend inline Vec3 operator-(const Vec3& _u, const Vec3& _v) {
-		return {_u.e[0] - _v.e[0], _u.e[1] - _v.e[1], _u.e[2] - _v.e[2]};
-	}
-	friend inline Vec3 operator*(const Vec3& _u, const Vec3& _v) {
-		return {_u.e[0] * _v.e[0], _u.e[1] * _v.e[1], _u.e[2] * _v.e[2]};
-	}
-	friend inline Vec3 operator*(float _t, const Vec3& _v) {
-		return {_t * _v.e[0], _t * _v.e[1], _t * _v.e[2]};
-	}
-	friend inline Vec3 operator*(const Vec3& _v, float _t) {
-		return _t * _v;
-	}
-	friend inline Vec3 operator/(Vec3 _v, float _t) {
-		return (1 / _t) * _v;
-	}
-	inline float Dot(const Vec3& _u, const Vec3& _v) {
-		return _u.e[0] * _v.e[0]
-			 + _u.e[1] * _v.e[1]
-			 + _u.e[2] * _v.e[2];
-	}
-	inline Vec3 Cross(const Vec3& _u, const Vec3& _v) {
-		return {
-			_u.e[1] * _v.e[2] - _u.e[2] * _v.e[1],
-			_u.e[2] * _v.e[0] - _u.e[0] * _v.e[2],
-			_u.e[0] * _v.e[1] - _u.e[1] * _v.e[0]
-		};
-	}
 
-	inline Vec3 UnitVector(Vec3 _v) {
-		return _v / _v.Length();
-	}
 };
 
+#pragma region Global Vec3 Utility Functions
+				// These go out here so that they're global functions and to avoid having to make them friends of the class
+						// (otherwise it tries to overload the bitwise versions? for some reason)
+						// https://stackoverflow.com/questions/35943537/error-c2804-binary-operator-has-too-many-parameters-compiling-with-vc-120
+						// https://stackoverflow.com/questions/15777944/overloading-the-operator-error-c2804-binary-operator-has-too-many-param
+
+inline std::ostream& operator<<(std::ostream& _out, const Vec3& _v) {
+	return _out << _v.e[0] << ' ' << _v.e[1] << ' ' << _v.e[2];
+}
+inline Vec3 operator+(const Vec3& _u, const Vec3& _v) {
+	return { _u.e[0] + _v.e[0], _u.e[1] + _v.e[1], _u.e[2] + _v.e[2] };
+}
+inline Vec3 operator-(const Vec3& _u, const Vec3& _v) {
+	return { _u.e[0] - _v.e[0], _u.e[1] - _v.e[1], _u.e[2] - _v.e[2] };
+}
+inline Vec3 operator*(const Vec3& _u, const Vec3& _v) {
+	return { _u.e[0] * _v.e[0], _u.e[1] * _v.e[1], _u.e[2] * _v.e[2] };
+}
+inline Vec3 operator*(float _t, const Vec3& _v) {
+	return { _t * _v.e[0], _t * _v.e[1], _t * _v.e[2] };
+}
+inline Vec3 operator*(const Vec3& _v, float _t) {
+	return _t * _v;
+}
+inline Vec3 operator/(Vec3 _v, float _t) {
+	return (1 / _t) * _v;
+}
+inline float Dot(const Vec3& _u, const Vec3& _v) {
+	return _u.e[0] * _v.e[0]
+		+ _u.e[1] * _v.e[1]
+		+ _u.e[2] * _v.e[2];
+}
+inline Vec3 Cross(const Vec3& _u, const Vec3& _v) {
+	return {
+		_u.e[1] * _v.e[2] - _u.e[2] * _v.e[1],
+		_u.e[2] * _v.e[0] - _u.e[0] * _v.e[2],
+		_u.e[0] * _v.e[1] - _u.e[1] * _v.e[0]
+	};
+}
+
+inline Vec3 UnitVector(Vec3 _v) {
+	return _v / _v.Length();
+}
+#pragma endregion
 
 // Type aliases for vec3
 using point3 = Vec3;	// 3D point (a vec3)

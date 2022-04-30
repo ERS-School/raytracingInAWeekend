@@ -22,11 +22,11 @@ struct Ray
 	// - Methods - //
 	/**
 	 * \brief Get a linearly interpolated point along the ray
-	 * \param t how far (+/-) along the ray to travel
+	 * \param _t how far (+/-) along the ray's direction to travel
 	 * \return point Vec3 in space
 	 */
-	point3 At(float t) const {
-		return Origin_ + t * Direction_;
+	point3 At(const float _t) const {
+		return Origin_ + _t * Direction_;
 	}
 };
 
