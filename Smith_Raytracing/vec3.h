@@ -104,7 +104,6 @@ inline Vec3 Cross(const Vec3& _u, const Vec3& _v) {
 inline Vec3 UnitVector(Vec3 _v) {
 	return _v / _v.Length();
 }
-
 inline Vec3 RandomInUnitSphere() {
 	while (true)
 	{
@@ -112,6 +111,15 @@ inline Vec3 RandomInUnitSphere() {
 		if (p.LengthSquared() >= 1) continue;
 		return p;
 	}
+}
+inline Vec3 RandomUnitVector() {
+	return UnitVector(RandomInUnitSphere());
+}
+inline Vec3 RandomInHemisphere(const Vec3& _normal) {
+	const Vec3 inUnitHemisphere = RandomInUnitSphere();
+	if (Dot(inUnitHemisphere, _normal) > 0.0f)
+		return inUnitHemisphere;
+	return -inUnitHemisphere;
 }
 #pragma endregion
 
