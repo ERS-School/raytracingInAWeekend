@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "color.h"
 #include "hittableList.h"
+#include "material.h"
 #include "sphere.h"
 
 #include <iostream>
@@ -61,10 +62,11 @@ colorRGB Ray_Color_LambertHemisphere(const Ray& _r, const Hittable& _world, int 
 
     if (_world.Hit(_r, 0.001f, static_cast<float>(infinity), info))
     {
-        const point3 target = info.P_ + RandomInHemisphere(info.Normal_); // no longer offset by the normal
-        // bounce the ray in direction of target and recursively check color again
-        const auto c = Ray_Color_LambertHemisphere(Ray(info.P_, target - info.P_), _world, _depth - 1);
-        return 0.5 * c;
+        Ray scattered;
+        colorRGB attenuation;
+        if (info.MaterialPtr_->Scatter(_r, info, attenuation, scattered))
+            return attenuation * Ray_Color_LambertHemisphere(scattered, _world, _depth - 1);
+        return {0, 0, 0};
     }
 
     // linear interpolation (lerp):
@@ -85,8 +87,17 @@ int main() {
 
     // World Properties
     HittableList world;
-    world.Add(make_shared<Sphere>(point3(0, 0, -1), 0.5f));
-    world.Add(make_shared<Sphere>(point3(0, -100.5, -1), 100.0f));
+    auto material_ground    = make_shared<Lambertian>(colorRGB(0.8f, 0.8f, 0.0f));
+    auto material_center    = make_shared<Lambertian>(colorRGB(0.7f, 0.3f, 0.3f));
+    auto material_left      = make_shared<Metal>(colorRGB(0.8f, 0.8f, 0.8f));
+    auto material_right     = make_shared<Metal>(colorRGB(0.8f, 0.6f, 0.2f));
+
+    world.Add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+    world.Add(make_shared<Sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
+    world.Add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+    world.Add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+
+    
 
     // Camera
     Camera cam;

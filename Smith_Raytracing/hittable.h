@@ -3,11 +3,14 @@
 
 #include "ray.h"
 
+struct Material;
+
 struct HitInfo
 {
 	// - Members - //
 	point3 P_;			// point of intersection with surface
 	Vec3 Normal_;		// normal of surface at P
+	std::shared_ptr<Material> MaterialPtr_;
 	float T_{};			// lerp distance along the ray that got us P
 	bool FrontFace_{};	// did we hit the front?
 

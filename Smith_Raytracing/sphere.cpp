@@ -1,6 +1,6 @@
 #include "sphere.h"
 
-bool Sphere::Hit(const Ray& _r, float _tMin, float _tMax, HitInfo& _rec) const {
+bool Sphere::Hit(const Ray& _r, float _tMin, float _tMax, HitInfo& _info) const {
     Vec3 oc = _r.Origin() - Center_;
     auto a = _r.Direction().LengthSquared(); //same as Dot(_r.Direction(), _r.Direction());
     //auto b = 2.0f * Dot(oc, _r.Direction());
@@ -31,9 +31,10 @@ bool Sphere::Hit(const Ray& _r, float _tMin, float _tMax, HitInfo& _rec) const {
     }
 
     // Hit! Update the record struct with details about the hit
-    _rec.T_ = root;
-    _rec.P_ = _r.At(_rec.T_);
-    Vec3 outwardNormal = (_rec.P_ - Center_) / Radius_; // unit length normal
-    _rec.SetFaceNormal(_r, outwardNormal);
+    _info.T_ = root;
+    _info.P_ = _r.At(_info.T_);
+    const Vec3 outwardNormal = (_info.P_ - Center_) / Radius_; // unit length normal
+    _info.SetFaceNormal(_r, outwardNormal);
+    _info.MaterialPtr_ = MaterialPtr_;
     return true;
 }

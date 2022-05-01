@@ -26,7 +26,7 @@ public:
 	}
 
 	Ray GetRay(double _u, double _v) const {
-		return Ray(origin_, lowerLeftCorner_ + _u * horizontalAxis_ + _v * verticalAxis_ - origin_);
+		return { origin_, lowerLeftCorner_ + _u * horizontalAxis_ + _v * verticalAxis_ - origin_ };
 	}
 };
 

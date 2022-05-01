@@ -39,6 +39,15 @@ struct Vec3
 	inline static Vec3 Random(float _min, float _max) {
 		return { RandomFloat(_min, _max), RandomFloat(_min, _max), RandomFloat(_min, _max) };
 	}
+	/**
+	 * \return TRUE if this vector is close to zero in all dimensions
+	 */
+	inline bool NearZero() const {
+		constexpr auto s = 1e-8f;
+		return (fabs(e[0]) < s
+			&& fabs(e[1]) < s
+			&& fabs(e[2]) < s);
+	}
 
 	// - Overloads - //
 	Vec3 operator-() const { return {-e[0], -e[1], -e[2]}; } // overload negation operator
@@ -100,6 +109,9 @@ inline Vec3 Cross(const Vec3& _u, const Vec3& _v) {
 		_u.e[2] * _v.e[0] - _u.e[0] * _v.e[2],
 		_u.e[0] * _v.e[1] - _u.e[1] * _v.e[0]
 	};
+}
+inline Vec3 Reflect(const Vec3 _v, const Vec3& _norm) {
+	return _v - 2 * Dot(_v, _norm) * _norm;
 }
 inline Vec3 UnitVector(Vec3 _v) {
 	return _v / _v.Length();
