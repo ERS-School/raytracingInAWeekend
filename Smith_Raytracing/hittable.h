@@ -6,10 +6,10 @@
 struct HitInfo
 {
 	// - Members - //
-	point3 P_;
-	Vec3 Normal_;
-	float T_{};
-	bool FrontFace_{};
+	point3 P_;			// point of intersection with surface
+	Vec3 Normal_;		// normal of surface at P
+	float T_{};			// lerp distance along the ray that got us P
+	bool FrontFace_{};	// did we hit the front?
 
 	// - Constructor - //
 	HitInfo() = default;

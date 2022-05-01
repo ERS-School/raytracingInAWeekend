@@ -8,18 +8,40 @@
 #include <iostream>
 
 /**
- * \brief Blend white and blue depending on the height of the y-coordinate after scaling the ray's direction to unit length
+ * \brief Determine the color a ray returns after its bouncy journey
  */
-colorRGB Ray_Color(const Ray& _r, const Hittable& _world) {
+colorRGB Ray_Color(const Ray& _r, const Hittable& _world, int _depth) {
     HitInfo info;
-    if (_world.Hit(_r, 0, INFINITY, info))
-        return 0.5f * (info.Normal_ + colorRGB(1.0f, 1.0f, 1.0f));
 
+    // If we've exceeded the ray bounce limit, no more light is gathered.
+    if (_depth <= 0)
+        return {0, 0, 0};
+    
+    if (_world.Hit(_r, 0.001f, static_cast<float>(infinity), info))
+    {
+        point3 target = info.P_ + info.Normal_ + RandomInUnitSphere();
+        auto c = Ray_Color(Ray(info.P_, target - info.P_), _world, _depth - 1); // bounce the ray in direction of target and recursively check color again
+    	return 0.5f * c;
+    }
+    
     // linear interpolation (lerp):
-    // blendedValue = 1 - t) * start value + t * endValue
+    // blendedValue = (1 - t) * start value + t * endValue
     const Vec3 unitDir = UnitVector(_r.Direction());
     const auto t = 0.5f * (unitDir.Y() + 1.0f);
     return (1.0f - t) * colorRGB(1.0f, 1.0f, 1.0f) + t * colorRGB(0.5f, 0.7f, 1.0f);
+
+    //// If we've exceeded the ray bounce limit, no more light is gathered.
+    //if (_depth <= 0)
+    //    return colorRGB(0, 0, 0);
+    //
+    //if (_world.Hit(_r, 0, infinity, info)) {
+    //    point3 target = info.P_ + info.Normal_ + RandomInUnitSphere();
+    //    return 0.5 * Ray_Color(Ray(info.P_, target - info.P_), _world, _depth - 1);
+    //}
+    //
+    //Vec3 unit_direction = UnitVector(_r.Direction());
+    //auto t = 0.5f * (unit_direction.Y() + 1.0f);
+    //return (1.0f - t) * colorRGB(1.0f, 1.0f, 1.0f) + t * colorRGB(0.5f, 0.7f, 1.0f);
 }
 
 int main() {
@@ -29,6 +51,7 @@ int main() {
     constexpr int imgWidth = 400;  // pixels
     constexpr int imgHeight = static_cast<int>(imgWidth / aspectRatio); //pixels
     constexpr int samplesPerPixel = 100;
+    constexpr int maxDepth = 50;
 
     // World Properties
     HittableList world;
@@ -54,7 +77,7 @@ int main() {
                 auto u = (col + RandomDouble()) / (imgWidth - 1.0);
                 auto v = (row + RandomDouble()) / (imgHeight - 1.0);
                 Ray r = cam.GetRay(u, v);
-                pixelColor += Ray_Color(r, world);
+                pixelColor += Ray_Color(r, world, maxDepth);
             }
             Write_Color(std::cout, pixelColor, samplesPerPixel);
         }

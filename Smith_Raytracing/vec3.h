@@ -1,6 +1,8 @@
 #ifndef VEC3_H
 #define VEC3_H
 
+#include "rtweekend.h"
+
 #include <cmath>
 #include <iostream>
 
@@ -21,6 +23,22 @@ struct Vec3
 	float Z() const { return e[2]; }
 	float Length() const { return sqrt(LengthSquared()); }
 	float LengthSquared() const { return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; }
+
+	// - Methods - //
+	/**
+	 * \brief get a Vec3 with xyz values in [0, 1)
+	 */
+	inline static Vec3 Random() {
+		return { RandomFloat(), RandomFloat(), RandomFloat() };
+	}
+	/**
+	 * \brief returns a Vec3 with xyz values in [min, max)
+	 * \param _min min value, inclusive
+	 * \param _max max value, exclusive
+	 */
+	inline static Vec3 Random(float _min, float _max) {
+		return { RandomFloat(_min, _max), RandomFloat(_min, _max), RandomFloat(_min, _max) };
+	}
 
 	// - Overloads - //
 	Vec3 operator-() const { return {-e[0], -e[1], -e[2]}; } // overload negation operator
@@ -83,9 +101,17 @@ inline Vec3 Cross(const Vec3& _u, const Vec3& _v) {
 		_u.e[0] * _v.e[1] - _u.e[1] * _v.e[0]
 	};
 }
-
 inline Vec3 UnitVector(Vec3 _v) {
 	return _v / _v.Length();
+}
+
+inline Vec3 RandomInUnitSphere() {
+	while (true)
+	{
+		auto p = Vec3::Random(-1, 1);
+		if (p.LengthSquared() >= 1) continue;
+		return p;
+	}
 }
 #pragma endregion
 

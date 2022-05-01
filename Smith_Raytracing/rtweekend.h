@@ -26,6 +26,9 @@ inline double DegToRad(const double _degrees) {
 inline double RandomDouble() {
 	return rand() / (RAND_MAX + 1.0);
 }
+inline float RandomFloat() {
+	return rand() / (RAND_MAX + 1.0f);
+}
 /**
  * \brief returns a number in [min, max)
  * \param _min min value, inclusive
@@ -33,6 +36,14 @@ inline double RandomDouble() {
  */
 inline double RandomDouble(double _min, double _max) {
 	return _min + (_max - _min) * RandomDouble();
+}
+/**
+ * \brief returns a number in [min, max)
+ * \param _min min value, inclusive
+ * \param _max max value, exclusive
+ */
+inline float RandomFloat(float _min, float _max) {
+	return _min + (_max - _min) * RandomFloat();
 }
 inline float Clamp(float _x, float _min, float _max) {
 	if (_x < _min) return _min;
