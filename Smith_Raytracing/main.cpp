@@ -1,5 +1,6 @@
 #include "rtweekend.h"
 
+#include "camera.h"
 #include "color.h"
 #include "hittableList.h"
 #include "sphere.h"
@@ -27,21 +28,15 @@ int main() {
     constexpr auto aspectRatio = 16.0f / 9.0f;
     constexpr int imgWidth = 400;  // pixels
     constexpr int imgHeight = static_cast<int>(imgWidth / aspectRatio); //pixels
+    constexpr int samplesPerPixel = 100;
 
     // World Properties
     HittableList world;
     world.Add(make_shared<Sphere>(point3(0, 0, -1), 0.5f));
     world.Add(make_shared<Sphere>(point3(0, -100.5, -1), 100.0f));
 
-    // Camera Properties
-    constexpr auto viewportHeight = 2.0f;
-    auto viewportWidth = aspectRatio * viewportHeight;
-    auto focalLength = 1.0f;
-
-    auto origin = point3(0, 0, 0);
-    auto horizontalAxis = Vec3(viewportWidth, 0, 0);
-    auto verticalAxis = Vec3(0, viewportHeight, 0);
-    auto lowerLeftCorner = origin - horizontalAxis / 2 - verticalAxis / 2 - Vec3(0, 0, focalLength);
+    // Camera
+    Camera cam;
 
     // Render the image:
     std::cout << "P3\n" << imgWidth << ' ' << imgHeight << "\n255\n";
@@ -53,11 +48,15 @@ int main() {
         // Create the image pixel-by-pixel
         for (int col = 0; col < imgWidth; ++col)
         {
-            float u = static_cast<float>(col) / (imgWidth / 1.0f);
-            float v = static_cast<float>(row) / (imgHeight / 1.0f);
-            Ray r(origin, lowerLeftCorner + u * horizontalAxis + v * verticalAxis - origin);
-	        const colorRGB pixelColor(Ray_Color(r, world));
-            Write_Color(std::cout, pixelColor);
+            colorRGB pixelColor(0, 0, 0);
+            for (int s = 0; s < samplesPerPixel; ++s)
+            {
+                auto u = (col + RandomDouble()) / (imgWidth - 1.0);
+                auto v = (row + RandomDouble()) / (imgHeight - 1.0);
+                Ray r = cam.GetRay(u, v);
+                pixelColor += Ray_Color(r, world);
+            }
+            Write_Color(std::cout, pixelColor, samplesPerPixel);
         }
     }
     std::cerr << "\nDone!\n";
