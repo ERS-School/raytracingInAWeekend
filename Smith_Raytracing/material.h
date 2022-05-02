@@ -51,14 +51,15 @@ struct Metal : Material
 {
 	// - Members - //
 	colorRGB Albedo_;
+	float Fuzziness_;
 
 	// - Constructors - //
-	Metal(const colorRGB& _albedo) : Albedo_(_albedo) {}
+	Metal(const colorRGB& _albedo, float _fuzziness) : Albedo_(_albedo), Fuzziness_(_fuzziness < 1 ? _fuzziness : 1) {}
 
 	// - Methods - //
 	virtual bool Scatter(const Ray& _rIn, const HitInfo& _info, colorRGB& _attenuation, Ray& _scattered) const override {
 		const Vec3 reflected = Reflect(UnitVector(_rIn.Direction()), _info.Normal_);
-		_scattered = Ray(_info.P_, reflected);
+		_scattered = Ray(_info.P_, reflected + Fuzziness_ * RandomInUnitSphere()); // slightly offset our ray within a unit sphere to fuzz (average) the reflection
 		_attenuation = Albedo_;
 		return (Dot(_scattered.Direction(), _info.Normal_) > 0);
 	}

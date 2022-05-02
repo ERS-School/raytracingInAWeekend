@@ -89,8 +89,8 @@ int main() {
     HittableList world;
     auto material_ground    = make_shared<Lambertian>(colorRGB(0.8f, 0.8f, 0.0f));
     auto material_center    = make_shared<Lambertian>(colorRGB(0.7f, 0.3f, 0.3f));
-    auto material_left      = make_shared<Metal>(colorRGB(0.8f, 0.8f, 0.8f));
-    auto material_right     = make_shared<Metal>(colorRGB(0.8f, 0.6f, 0.2f));
+    auto material_left      = make_shared<Metal>(colorRGB(0.8f, 0.8f, 0.8f), 0.3f);
+    auto material_right     = make_shared<Metal>(colorRGB(0.8f, 0.6f, 0.2f), 0.8f);
 
     world.Add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
     world.Add(make_shared<Sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
