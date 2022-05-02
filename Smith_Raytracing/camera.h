@@ -13,20 +13,26 @@ private:
 	Vec3 verticalAxis_;
 
 public:
-	Camera() {
-		auto aspectRatio = 16.0 / 9.0;
-		auto viewportHeight = 2.0;
-		auto viewportWidth = aspectRatio * viewportHeight;
-		auto focalLength = 1.0;
+	Camera(point3 _lookFrom, point3 _lookAt, Vec3 _up, float _fovDegrees, float _aspectRatio)
+		: origin_(_lookFrom)
+	{
+		const auto theta = DegToRad(_fovDegrees);
+		const auto h = tan(theta / 2);
+		auto viewportHeight = 2.0 * h;
+		auto viewportWidth = _aspectRatio * viewportHeight;
 
-		origin_ = point3(0, 0, 0);
-		horizontalAxis_ = Vec3(viewportWidth, 0.0, 0.0);
-		verticalAxis_ = Vec3(0.0, viewportHeight, 0.0);
-		lowerLeftCorner_ = origin_ - horizontalAxis_ / 2 - verticalAxis_ / 2 - Vec3(0, 0, focalLength);
+		auto w = UnitVector(_lookFrom - _lookAt);
+		auto u = UnitVector(Cross(_up, w));
+		auto v = Cross(w, u);
+
+
+		horizontalAxis_ = viewportWidth * u;
+		verticalAxis_ = viewportHeight * v;
+		lowerLeftCorner_ = origin_ - horizontalAxis_/2 - verticalAxis_/2 - w;
 	}
 
-	Ray GetRay(double _u, double _v) const {
-		return { origin_, lowerLeftCorner_ + _u * horizontalAxis_ + _v * verticalAxis_ - origin_ };
+	Ray GetRay(double _s, double _t) const {
+		return { origin_, lowerLeftCorner_ + _s * horizontalAxis_ + _t * verticalAxis_ - origin_ };
 	}
 };
 
