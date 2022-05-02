@@ -76,7 +76,56 @@ colorRGB Ray_Color_LambertHemisphere(const Ray& _r, const Hittable& _world, int 
     return (1.0f - t) * colorRGB(1.0f, 1.0f, 1.0f) + t * colorRGB(0.5f, 0.7f, 1.0f);
 }
 
-int main() {
+
+HittableList RandomScene() {
+    HittableList world;
+
+    auto groundMaterial = make_shared<Lambertian>(colorRGB(0.5f, 0.5f, 0.5f));
+    world.Add(make_shared<Sphere>(point3(0, -1000, 0), 1000.0f, groundMaterial));
+    
+    for (int a = -11; a < 11; a++) {
+        for (int b = -11; b < 11; b++) {
+	        const auto chooseMat = RandomFloat();
+            point3 center(static_cast<float>(a) + 0.9f * RandomFloat(), 0.2f, static_cast<float>(b) + 0.9f * RandomFloat());
+    
+            if ((center - point3(4, 0.2f, 0)).Length() > 0.9f) {
+                shared_ptr<Material> sphereMaterial;
+    
+                if (chooseMat < 0.8f) {
+                    // diffuse
+                    auto albedo = colorRGB::Random() * colorRGB::Random();
+                    sphereMaterial = make_shared<Lambertian>(albedo);
+                    world.Add(make_shared<Sphere>(center, 0.2f, sphereMaterial));
+                }
+                else if (chooseMat < 0.95f) {
+                    // metal
+                    auto albedo = colorRGB::Random(0.5f, 1.0f);
+                    auto fuzz = RandomFloat(0, 0.5f);
+                    sphereMaterial = make_shared<Metal>(albedo, fuzz);
+                    world.Add(make_shared<Sphere>(center, 0.2f, sphereMaterial));
+                }
+                else {
+                    // glass
+                    sphereMaterial = make_shared<Dielectric>(1.5f);
+                    world.Add(make_shared<Sphere>(center, 0.2f, sphereMaterial));
+                }
+            }
+        }
+    }
+
+    auto material1 = make_shared<Dielectric>(1.5f);
+    world.Add(make_shared<Sphere>(point3(0, 1, 0), 1.0f, material1));
+    
+    auto material2 = make_shared<Lambertian>(colorRGB(0.4f, 0.2f, 0.1f));
+    world.Add(make_shared<Sphere>(point3(-4, 1, 0), 1.0f, material2));
+    
+    auto material3 = make_shared<Metal>(colorRGB(0.7f, 0.6f, 0.5f), 0.0f);
+    world.Add(make_shared<Sphere>(point3(4.0f, 1.0f, 0.0f), 1.0f, material3));
+
+    return world;
+}
+
+void DepthOfField_TestScene() {
 
     // Image Properties
     constexpr auto aspectRatio = 16.0f / 9.0f;
@@ -89,19 +138,26 @@ int main() {
     auto R = cos(pi / 4);
     HittableList world;
 
-    auto material_ground = make_shared<Lambertian>(colorRGB(0.8, 0.8, 0.0));
-    auto material_center = make_shared<Lambertian>(colorRGB(0.1, 0.2, 0.5));
-    auto material_left = make_shared<Dielectric>(1.5);
-    auto material_right = make_shared<Metal>(colorRGB(0.8, 0.6, 0.2), 0.0);
+    auto materialGround = make_shared<Lambertian>(colorRGB(0.8f, 0.8f, 0.0));
+    auto materialCenter = make_shared<Lambertian>(colorRGB(0.1f, 0.2f, 0.5));
+    auto materialLeft = make_shared<Dielectric>(1.5f);
+    auto materialRight = make_shared<Metal>(colorRGB(0.8f, 0.6f, 0.2f), 0.0f);
 
-    world.Add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
-    world.Add(make_shared<Sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
-    world.Add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
-    world.Add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), -0.45, material_left));
-    world.Add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+    world.Add(make_shared<Sphere>(point3( 0.0f, -100.5f, -1.0f)  ,  100.0f,   materialGround));
+    world.Add(make_shared<Sphere>(point3( 0.0f, 0.0f, -1.0f)     ,  0.5f,     materialCenter));
+    world.Add(make_shared<Sphere>(point3(-1.0f, 0.0f, -1.0f)    ,  0.5f,     materialLeft));
+    world.Add(make_shared<Sphere>(point3(-1.0,  0.0f, -1.0f)     , -0.45f,   materialLeft));
+    world.Add(make_shared<Sphere>(point3( 1.0f, 0.0f, -1.0f)     ,  0.5f,     materialRight));
 
+    // Camera
+    point3 lookfrom(3, 3, 2);
+    point3 lookat(0, 0, -1);
+    Vec3 vup(0, 1, 0);
+    auto dist_to_focus = (lookfrom - lookat).Length();
+    auto aperture = 2.0f;
+
+    Camera cam(lookfrom, lookat, vup, 20, aspectRatio, aperture, dist_to_focus);
     //Camera cam(point3(-2, 2, 1), point3(0, 0, -1), Vec3(0, 1, 0), 90, aspectRatio);
-    Camera cam(point3(-2, 2, 1), point3(0, 0, -1), Vec3(0, 1, 0), 20, aspectRatio);
 
     // Render the image:
     std::cout << "P3\n" << imgWidth << ' ' << imgHeight << "\n255\n";
@@ -116,8 +172,54 @@ int main() {
             colorRGB pixelColor(0, 0, 0);
             for (int s = 0; s < samplesPerPixel; ++s)
             {
-                auto u = (col + RandomDouble()) / (imgWidth - 1.0);
-                auto v = (row + RandomDouble()) / (imgHeight - 1.0);
+	            const auto u = (col + RandomFloat()) / (imgWidth - 1.0f);
+	            const auto v = (row + RandomFloat()) / (imgHeight - 1.0f);
+                Ray r = cam.GetRay(u, v);
+                pixelColor += Ray_Color_LambertHemisphere(r, world, maxDepth);
+            }
+            Write_Color(std::cout, pixelColor, samplesPerPixel);
+        }
+    }
+    std::cerr << "\nDone!\n";
+}
+
+
+int main() {
+    // Image Properties
+    constexpr auto aspectRatio = 3.0f / 2.0f;
+    constexpr int imgWidth = 1200;  // pixels
+    constexpr int imgHeight = static_cast<int>(imgWidth / aspectRatio); //pixels
+    constexpr int samplesPerPixel = 500;
+    constexpr int maxDepth = 50;
+
+    // World
+    HittableList world = RandomScene();
+
+    // Camera
+    point3 lookfrom(13, 2, 3);
+    point3 lookat(0, 0, 0);
+    Vec3 vup(0, 1, 0);
+    auto dist_to_focus = 10.0f;
+    auto aperture = 0.1f;
+
+    Camera cam(lookfrom, lookat, vup, 20, aspectRatio, aperture, dist_to_focus);
+    //Camera cam(point3(-2, 2, 1), point3(0, 0, -1), Vec3(0, 1, 0), 90, aspectRatio);
+
+    // Render the image:
+    std::cout << "P3\n" << imgWidth << ' ' << imgHeight << "\n255\n";
+    for (int row = imgHeight; row >= 0; --row)
+    {
+        // Progress indicator
+        std::cerr << "\rScan lines remaining: " << row << ' ' << std::flush;
+
+        // Create the image pixel-by-pixel
+        for (int col = 0; col < imgWidth; ++col)
+        {
+            colorRGB pixelColor(0, 0, 0);
+            for (int s = 0; s < samplesPerPixel; ++s)
+            {
+                const auto u = (col + RandomFloat()) / (imgWidth - 1.0f);
+                const auto v = (row + RandomFloat()) / (imgHeight - 1.0f);
                 Ray r = cam.GetRay(u, v);
                 pixelColor += Ray_Color_LambertHemisphere(r, world, maxDepth);
             }

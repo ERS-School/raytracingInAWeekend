@@ -1,10 +1,10 @@
 #ifndef VEC3_H
 #define VEC3_H
 
-#include "rtweekend.h"
-
 #include <cmath>
 #include <iostream>
+
+#include "rtweekend.h"
 
 using std::sqrt;
 
@@ -126,6 +126,14 @@ inline Vec3 RandomInUnitSphere() {
 	while (true)
 	{
 		auto p = Vec3::Random(-1, 1);
+		if (p.LengthSquared() >= 1) continue;
+		return p;
+	}
+}
+inline Vec3 RandomInUnitDisk() {
+	while (true)
+	{
+		auto p = Vec3(RandomFloat(-1, 1), RandomFloat(-1, 1), 0);
 		if (p.LengthSquared() >= 1) continue;
 		return p;
 	}

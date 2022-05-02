@@ -65,7 +65,7 @@ struct Metal : Material
 	// - Methods - //
 	virtual bool Scatter(const Ray& _rIn, const HitInfo& _info, colorRGB& _attenuation, Ray& _scattered) const override {
 		const Vec3 reflected = Reflect(UnitVector(_rIn.Direction()), _info.Normal_);
-		_scattered = Ray(_info.P_, reflected + Fuzziness_ * RandomInUnitSphere()); // slightly offset our ray within a unit sphere to fuzz (average) the reflection
+		_scattered = Ray(_info.P_, reflected + Fuzziness_ * RandomInUnitSphere()); // slightly offset our ray within a unit Sphere to fuzz (average) the reflection
 		_attenuation = Albedo_;
 		return (Dot(_scattered.Direction(), _info.Normal_) > 0);
 	}
@@ -85,16 +85,16 @@ struct Dielectric : public Material
 	// - Methods - //
 	virtual bool Scatter(const Ray& _rIn, const HitInfo& _info, colorRGB& _attenuation, Ray& _scattered) const override {
 		_attenuation = colorRGB(1.0, 1.0, 1.0);
-		float refractionRatio = _info.FrontFace_ ? (1.0f / RefractionIndex_) : RefractionIndex_;
+		const float refractionRatio = _info.FrontFace_ ? (1.0f / RefractionIndex_) : RefractionIndex_;
 
-		Vec3 unitDir = UnitVector(_rIn.Direction());
-		float cosTheta = fmin(Dot(-unitDir, _info.Normal_), 1.0f);
-		float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+		const Vec3 unitDir = UnitVector(_rIn.Direction());
+		const float cosTheta = fmin(Dot(-unitDir, _info.Normal_), 1.0f);
+		const float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 
-		bool cannotRefract = refractionRatio * sinTheta > 1.0;
+		const bool cannotRefract = refractionRatio * sinTheta > 1.0f;
 		Vec3 direction;
 
-		if (cannotRefract  || Reflectance(cosTheta, refractionRatio) > RandomDouble())
+		if (cannotRefract  || Reflectance(cosTheta, refractionRatio) > RandomFloat())
 			direction = Reflect(unitDir, _info.Normal_);
 		else
 			direction = Refract(unitDir, _info.Normal_, refractionRatio);

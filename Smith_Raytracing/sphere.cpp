@@ -26,7 +26,7 @@ bool Sphere::Hit(const Ray& _r, float _tMin, float _tMax, HitInfo& _info) const 
         root = (-halfB + squrtd) / a;
         if (root < _tMin || root > _tMax)
         {
-            return false; // didn't hit this sphere
+            return false; // didn't hit this Sphere
         }
     }
 
