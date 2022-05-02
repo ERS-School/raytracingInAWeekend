@@ -12,13 +12,16 @@ struct Material
 	 * \brief Represents how light (rays) interact with a material
 	 * \param _rIn incident ray
 	 * \param _info info about where/how the incident ray hit the surface
-	 * \param _attenuation attenuation
+	 * \param _attenuation what tinge does incoming light get shifted toward?
 	 * \param _scattered resulting ray
 	 * \return TRUE if the ray is not absorbed
 	 */
 	virtual bool Scatter(const Ray& _rIn, const HitInfo& _info, colorRGB& _attenuation, Ray& _scattered) const = 0;
 };
 
+/**
+ * \brief Surfaces that diffuse/scatter light
+ */
 struct Lambertian : public Material
 {
 	// - Members - //
@@ -47,6 +50,9 @@ struct Lambertian : public Material
 
 };
 
+/**
+ * \brief Surfaces that reflect light in a range from perfect mirror to very fuzzy
+ */
 struct Metal : Material
 {
 	// - Members - //
@@ -64,4 +70,49 @@ struct Metal : Material
 		return (Dot(_scattered.Direction(), _info.Normal_) > 0);
 	}
 };
+
+/**
+ * \brief "Surfaces" that refract and reflect light (both happen at once!) If it can't refract (see Snell's law), then it will reflect
+ */
+struct Dielectric : public Material
+{
+	// - Members - //
+	float RefractionIndex_;
+
+	// - Constructors - //
+	Dielectric(float _refractionIndex) : RefractionIndex_(_refractionIndex) {}
+
+	// - Methods - //
+	virtual bool Scatter(const Ray& _rIn, const HitInfo& _info, colorRGB& _attenuation, Ray& _scattered) const override {
+		_attenuation = colorRGB(1.0, 1.0, 1.0);
+		float refractionRatio = _info.FrontFace_ ? (1.0f / RefractionIndex_) : RefractionIndex_;
+
+		Vec3 unitDir = UnitVector(_rIn.Direction());
+		float cosTheta = fmin(Dot(-unitDir, _info.Normal_), 1.0f);
+		float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+
+		bool cannotRefract = refractionRatio * sinTheta > 1.0;
+		Vec3 direction;
+
+		if (cannotRefract  || Reflectance(cosTheta, refractionRatio) > RandomDouble())
+			direction = Reflect(unitDir, _info.Normal_);
+		else
+			direction = Refract(unitDir, _info.Normal_, refractionRatio);
+
+		_scattered = Ray(_info.P_, direction);
+		return true;
+	}
+private:
+	/**
+	 * \brief Schlick's approximation for reflectance
+	 * \param _cosine cosine
+	 * \param _refIdx reflective index
+	 */
+	static float Reflectance(float _cosine, float _refIdx) {
+		auto r0 = (1.0f - _refIdx) / (1.0f + _refIdx);
+		r0 = r0 * r0;
+		return r0 + (1.0f - r0) * pow((1.0f - _cosine), 5.0f);
+	}
+};
+
 #endif

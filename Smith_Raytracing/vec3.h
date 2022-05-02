@@ -113,6 +113,12 @@ inline Vec3 Cross(const Vec3& _u, const Vec3& _v) {
 inline Vec3 Reflect(const Vec3 _v, const Vec3& _norm) {
 	return _v - 2 * Dot(_v, _norm) * _norm;
 }
+inline Vec3 Refract(const Vec3& _uv, const Vec3& _norm, float _etaiOverEtat) {
+	auto cosTheta = fmin(Dot(-_uv, _norm), 1.0f);
+	Vec3 rPerp = _etaiOverEtat * (_uv + cosTheta * _norm);
+	Vec3 rParallel = -sqrt(fabs(1.0f - rPerp.LengthSquared())) * _norm;
+	return rPerp + rParallel;
+}
 inline Vec3 UnitVector(Vec3 _v) {
 	return _v / _v.Length();
 }
